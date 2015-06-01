@@ -275,6 +275,7 @@ define(['underscore', './util', './RelationshipManager'], function (_, util, Rel
             
             var maxX = 0;
             var sheetData = util.createElement(doc, 'sheetData');
+            var listHyperlinks = [];
             
             var cellCache = this._buildCache(doc);
             
@@ -328,6 +329,12 @@ define(['underscore', './util', './RelationshipManager'], function (_, util, Rel
                     if(metadata.style) {
                         cell.setAttribute('s', metadata.style);
                     }
+                    if(metadata.hyperlink) {
+                        listHyperlinks.push({
+                            src: util.positionToLetterRef(c + 1, row + 1),
+                            dest: metadata.hyperlink
+                        });
+                    }
                     cell.setAttribute('r', util.positionToLetterRef(c + 1, row + 1));
                     rowNode.appendChild(cell);
                 }
@@ -364,6 +371,16 @@ define(['underscore', './util', './RelationshipManager'], function (_, util, Rel
                 worksheet.appendChild(this.exportColumns(doc));
             }
             worksheet.appendChild(sheetData);
+            if(listHyperlinks.length){
+                var hyperlinks = doc.createElement('hyperlinks')
+                listHyperlinks.forEach(function(hyperlink){
+                    var newHyperlink = doc.createElement('hyperlink');
+                    newHyperlink.setAttribute('ref', hyperlink.src);
+                    newHyperlink.setAttribute('location', hyperlink.dest);
+                    hyperlinks.appendChild(newHyperlink);
+                });
+                worksheet.appendChild(hyperlinks);
+            }
 
             // 'mergeCells' should be written before 'headerFoot' and 'drawing' due to issue
             // with Microsoft Excel (2007, 2013)
